@@ -108,25 +108,37 @@ public class Player
     {
         if (keyboardState.IsKeyDown(Keys.Space) && !_isJumping)
         {
-            _isJumping = true;
-            _jumpSpeed = CalculateJumpSpeed();
+            StartJump();
         }
 
         if (_isJumping)
         {
-            _jumpSpeed -= Gravity * time;
-            var newYPosition = SpherePosition.Y + _jumpSpeed * time;
-
-            if (newYPosition <= 0)
+            SpherePosition = CalculateFallPosition(time);
+            if (SpherePosition.Y <= 0)
             {
-                newYPosition = 0;
-                _isJumping = false;
-                _jumpSpeed = 0;
+                EndJump();
             }
-
-            var newPosition = new Vector3(SpherePosition.X, newYPosition, SpherePosition.Z);
-            SpherePosition = newPosition;
         }
+    }
+
+    private void EndJump()
+    {
+        _isJumping = false;
+        _jumpSpeed = 0;
+    }
+
+    private void StartJump()
+    {
+        _isJumping = true;
+        _jumpSpeed = CalculateJumpSpeed();
+    }
+
+    private Vector3 CalculateFallPosition(float time)
+    {
+        _jumpSpeed -= Gravity * time;
+        var newYPosition = SpherePosition.Y + _jumpSpeed * time;
+        var newPosition = new Vector3(SpherePosition.X, newYPosition, SpherePosition.Z);
+        return newPosition;
     }
 
     private static float CalculateJumpSpeed()
