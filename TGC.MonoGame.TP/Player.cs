@@ -1,4 +1,5 @@
 ﻿using System;
+using BepuPhysics.Collidables;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -7,6 +8,7 @@ namespace TGC.MonoGame.TP;
 public class Player
 {
     public Vector3 SpherePosition;
+    public BoundingSphere SphereCollider { get; private set; }
     public float Yaw { get; private set; }
     private readonly Matrix _sphereScale;
     private float _pitch;
@@ -21,6 +23,7 @@ public class Player
     {
         _sphereScale = sphereScale;
         SpherePosition = spherePosition;
+        SphereCollider = new BoundingSphere(SpherePosition, SphereColliderRadius);
     }
 
     private const float MaxSpeed = 180f;
@@ -31,50 +34,31 @@ public class Player
     private const float YawAcceleration = 5f;
     private const float Gravity = 175f;
     private const float MaxJumpHeight = 35f;
+    private const float SphereColliderRadius = 5f;
 
     public Matrix Update(float time, KeyboardState keyboardState)
     {
-        if (keyboardState.IsKeyDown(Keys.Space) && !_isJumping)
-        {
-            _isJumping = true; 
-            _jumpSpeed = (float)Math.Sqrt(2 * MaxJumpHeight * Math.Abs(Gravity)); 
-        }
-        if (_isJumping)
-        {
-            _jumpSpeed -= Gravity * time;
-            var newYPosition = SpherePosition.Y + _jumpSpeed * time;
+        HandleJumping(time, keyboardState);
 
-            if (newYPosition <= 0)
-            {
-                newYPosition = 0;
-                _isJumping = false;
-                _jumpSpeed = 0;
-            }
-
-            var newPosition = new Vector3(SpherePosition.X, newYPosition, SpherePosition.Z);
-            SpherePosition = newPosition;
-        }
-            
-        if (keyboardState.IsKeyDown(Keys.A))
-        {
-            _yawSpeed += YawAcceleration * time;
-        }
-        else if (keyboardState.IsKeyDown(Keys.D))
-        {
-            _yawSpeed -= YawAcceleration * time;
-        }
-        else
-        {
-            var yawDecelerationDirection = Math.Sign(_yawSpeed) * -1;
-            _yawSpeed += YawAcceleration * time * yawDecelerationDirection;
-        }
-            
-        _yawSpeed = MathHelper.Clamp(_yawSpeed, -YawMaxSpeed, YawMaxSpeed);
-        Yaw += _yawSpeed * time;
+        HandleYaw(time, keyboardState);
 
         var rotationY = Matrix.CreateRotationY(Yaw);
         var forward = rotationY.Forward;
 
+        HandleMovement(time, keyboardState, forward);
+
+        //SphereCollider.Center = SpherePosition;
+
+        SphereCollider = new BoundingSphere(SpherePosition, SphereColliderRadius);
+            
+        var rotationX = Matrix.CreateRotationX(_pitch);
+        var translation = Matrix.CreateTranslation(SpherePosition);
+            
+        return _sphereScale * rotationX * rotationY * translation;
+    }
+
+    private void HandleMovement(float time, KeyboardState keyboardState, Vector3 forward)
+    {
         if (keyboardState.IsKeyDown(Keys.W))
         {
             _speed += Acceleration * time;
@@ -92,15 +76,65 @@ public class Player
             _speed += Acceleration * time * decelerationDirection;
             _pitchSpeed += PitchAcceleration * time * pitchDecelerationDirection;
         }
-            
+
         _pitchSpeed = MathHelper.Clamp(_pitchSpeed, -PitchMaxSpeed, PitchMaxSpeed);
         _speed = MathHelper.Clamp(_speed, -MaxSpeed, MaxSpeed);
         SpherePosition += forward * time * _speed;
         _pitch += _pitchSpeed * time;
-            
-        var rotationX = Matrix.CreateRotationX(_pitch);
-        var translation = Matrix.CreateTranslation(SpherePosition);
-            
-        return _sphereScale * rotationX * rotationY * translation;
+    }
+
+    private void HandleYaw(float time, KeyboardState keyboardState)
+    {
+        if (keyboardState.IsKeyDown(Keys.A))
+        {
+            _yawSpeed += YawAcceleration * time;
+        }
+        else if (keyboardState.IsKeyDown(Keys.D))
+        {
+            _yawSpeed -= YawAcceleration * time;
+        }
+        else
+        {
+            DecelerateYaw(time);
+        }
+
+        _yawSpeed = MathHelper.Clamp(_yawSpeed, -YawMaxSpeed, YawMaxSpeed);
+        Yaw += _yawSpeed * time;
+    }
+
+    private void DecelerateYaw(float time)
+    {
+        var yawDecelerationDirection = Math.Sign(_yawSpeed) * -1;
+        _yawSpeed += YawAcceleration * time * yawDecelerationDirection;
+    }
+
+    private void HandleJumping(float time, KeyboardState keyboardState)
+    {
+        if (keyboardState.IsKeyDown(Keys.Space) && !_isJumping)
+        {
+            _isJumping = true;
+            _jumpSpeed = CalculateJumpSpeed();
+        }
+
+        if (_isJumping)
+        {
+            _jumpSpeed -= Gravity * time;
+            var newYPosition = SpherePosition.Y + _jumpSpeed * time;
+
+            if (newYPosition <= 0)
+            {
+                newYPosition = 0;
+                _isJumping = false;
+                _jumpSpeed = 0;
+            }
+
+            var newPosition = new Vector3(SpherePosition.X, newYPosition, SpherePosition.Z);
+            SpherePosition = newPosition;
+        }
+    }
+
+    private static float CalculateJumpSpeed()
+    {
+        return (float)Math.Sqrt(2 * MaxJumpHeight * Math.Abs(Gravity));
     }
 }

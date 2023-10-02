@@ -240,7 +240,7 @@ namespace TGC.MonoGame.TP
             
             var keyboardState = Keyboard.GetState();
             var time = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
-
+            
             SphereWorld = _player.Update(time, keyboardState);
             
             // Capturar Input teclado
