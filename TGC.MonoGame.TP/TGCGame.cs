@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TGC.MonoGame.TP.Cameras;
+using TGC.MonoGame.TP.Collisions;
 using TGC.MonoGame.TP.Geometries;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -81,6 +82,8 @@ namespace TGC.MonoGame.TP
 
         private Player _player;
         
+        // Colliders
+        private BoundingBox[] Colliders { get; set; }
         
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -124,6 +127,13 @@ namespace TGC.MonoGame.TP
             Prefab.CreateSquareCircuit(Vector3.Zero);
             Prefab.CreateSquareCircuit(new Vector3(-600, 0f, 0f));
             _platformMatrices = Prefab.PlatformMatrices;
+            
+            Colliders = new BoundingBox[_platformMatrices.Count];
+
+            for (var index = 0; index < _platformMatrices.Count; index++)
+            {
+                Colliders[index] = BoundingVolumesExtensions.FromMatrix(_platformMatrices[index]);
+            }
             
             /*
              ===================================================================================================
