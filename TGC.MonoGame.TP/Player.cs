@@ -8,7 +8,7 @@ namespace TGC.MonoGame.TP;
 public class Player
 {
     public Vector3 SpherePosition;
-    public BoundingSphere SphereCollider { get; private set; }
+    public BoundingSphere SphereCollider { get; set; }
     public float Yaw { get; private set; }
     private readonly Matrix _sphereScale;
     private float _pitch;
@@ -23,7 +23,6 @@ public class Player
     {
         _sphereScale = sphereScale;
         SpherePosition = spherePosition;
-        SphereCollider = new BoundingSphere(SpherePosition, SphereColliderRadius);
     }
 
     private const float MaxSpeed = 180f;
@@ -34,7 +33,6 @@ public class Player
     private const float YawAcceleration = 5f;
     private const float Gravity = 175f;
     private const float MaxJumpHeight = 35f;
-    private const float SphereColliderRadius = 5f;
 
     public Matrix Update(float time, KeyboardState keyboardState)
     {
@@ -48,8 +46,6 @@ public class Player
         HandleMovement(time, keyboardState, forward);
 
         //SphereCollider.Center = SpherePosition;
-
-        SphereCollider = new BoundingSphere(SpherePosition, SphereColliderRadius);
             
         var rotationX = Matrix.CreateRotationX(_pitch);
         var translation = Matrix.CreateTranslation(SpherePosition);

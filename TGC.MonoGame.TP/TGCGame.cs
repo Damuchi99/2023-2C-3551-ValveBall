@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -209,6 +210,7 @@ namespace TGC.MonoGame.TP
             loadEffectOnMesh(SphereModel, TextureEffect);
 
             SphereWorld = SphereScale * Matrix.CreateTranslation(SpherePosition);
+            _player.SphereCollider = BoundingVolumesExtensions.CreateSphereFrom(SphereModel);
 
             var skyBox = Content.Load<Model>(ContentFolder3D + "skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "/skyboxes/skybox");
