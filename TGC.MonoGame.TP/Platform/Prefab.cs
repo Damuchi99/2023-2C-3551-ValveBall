@@ -16,7 +16,7 @@ public static class Prefab
     {
         // Platform
         // Side platforms
-        CreatePlatform(new Vector3(50f, 6f, 200f), Vector3.Zero + offset);
+        CreatePlatform(new Vector3(50f, 6f, 200f), Vector3.Zero + offset); // poner checkpoint
         CreatePlatform(new Vector3(50f, 6f, 200f), new Vector3(300f, 0f, 0f) + offset);
         CreatePlatform(new Vector3(200f, 6f, 50f), new Vector3(150f, 0f, -200f) + offset);
         CreatePlatform(new Vector3(200f, 6f, 50f), new Vector3(150f, 0f, 200f) + offset);
@@ -75,7 +75,7 @@ public static class Prefab
             height += heightIncrement;
             CreateRamp(rampSize, new Vector3(-800f, height, 50f), 0f, 0.3f);
             height += heightIncrement;
-            CreatePlatform(platformSize, new Vector3(-680f, height, 25f));
+            CreatePlatform(platformSize, new Vector3(-680f, height, 25f)); // en la ultima plataforma de estas poner checkpoint
         }
 
         CreateBridgeMaze(height);
@@ -97,12 +97,12 @@ public static class Prefab
     private static void CreateMaze(float height)
     {
         // Entrance platform
-        CreatePlatform(new Vector3(50f, 6f, 50f), new Vector3(-300f, height, 0f));
+        CreatePlatform(new Vector3(50f, 6f, 50f), new Vector3(-300f, height, 0f)); // poner checkpoint
 
         // Maze platform
         CreatePlatform(new Vector3(750f, 6f, 750f), new Vector3(100f, height, 0f));
 
-        // Center platform to go next level, tendria que moverse hacia arriba hasta 900f
+        // Center platform to go next level, poner un checkpoint que te transporte a otra parte
         CreatePlatform(new Vector3(50f, 6f, 50f), new Vector3(100f, height, 0f));
 
         // Border Walls
