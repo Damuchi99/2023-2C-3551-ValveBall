@@ -4,7 +4,7 @@ using TGC.MonoGame.TP.Collisions;
 
 namespace TGC.MonoGame.TP.Platform;
 
-public static class Prefab
+public static class Circuito1
 {
     public static readonly List<Matrix> PlatformMatrices =  new();
     public static readonly List<Matrix> RampMatrices =  new();

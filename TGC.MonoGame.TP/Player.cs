@@ -251,7 +251,7 @@ public class Player
     
     private void DetectAabbCollisions(Vector3 sphereCenter, List<CollisionInfo> collisions)
     {
-        foreach (var collider in Prefab.PlatformAabb)
+        foreach (var collider in Circuito1.PlatformAabb)
         {
             if (!collider.Intersects(BoundingSphere)) continue;
 
@@ -267,7 +267,7 @@ public class Player
     
     private void DetectObbCollisions(Vector3 sphereCenter, List<CollisionInfo> collisions)
     {
-        foreach (var collider in Prefab.RampObb)
+        foreach (var collider in Circuito1.RampObb)
         {
             if (!collider.Intersects(BoundingSphere, out _, out _)) continue;
 
@@ -282,7 +282,7 @@ public class Player
 
     private void DetectMovingCollisions(Vector3 sphereCenter, List<CollisionInfo> collisions)
     {
-        foreach (var movingPlatform in Prefab.MovingPlatforms)
+        foreach (var movingPlatform in Circuito1.MovingPlatforms)
         {
             var collider = movingPlatform.MovingBoundingBox;
 

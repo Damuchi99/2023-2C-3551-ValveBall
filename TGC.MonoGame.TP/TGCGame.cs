@@ -123,10 +123,10 @@ namespace TGC.MonoGame.TP
                 offset -= 600f;
             }
             
-            Prefab.CreateSquareCircuit(Vector3.Zero);
-            Prefab.CreateSquareCircuit(new Vector3(-600, 0f, 0f));
-            Prefab.CreateBridge();
-            Prefab.CreateSwitchbackRamp();
+            Circuito1.CreateSquareCircuit(Vector3.Zero);
+            Circuito1.CreateSquareCircuit(new Vector3(-600, 0f, 0f));
+            Circuito1.CreateBridge();
+            Circuito1.CreateSwitchbackRamp();
             
             base.Initialize();
         }
@@ -209,7 +209,7 @@ namespace TGC.MonoGame.TP
             
             SetLightPosition(new Vector3(150f, 750f, 0f));
 
-            Prefab.UpdateMovingPlatforms();
+            Circuito1.UpdateMovingPlatforms();
 
             UpdateStars(gameTime);
 
@@ -267,7 +267,7 @@ namespace TGC.MonoGame.TP
 
         private void DrawPlatforms(Effect effect, Material material)
         {
-            foreach (var platformWorld in Prefab.PlatformMatrices)
+            foreach (var platformWorld in Circuito1.PlatformMatrices)
             {
                 effect.CurrentTechnique = effect.Techniques["NormalMapping"];
                 effect.Parameters["World"].SetValue(platformWorld);
@@ -291,7 +291,7 @@ namespace TGC.MonoGame.TP
         
         private void DrawRamps(Effect effect, Material material)
         {
-            foreach (var rampWorld in Prefab.RampMatrices)
+            foreach (var rampWorld in Circuito1.RampMatrices)
             {
                 effect.CurrentTechnique = effect.Techniques["NormalMapping"];
                 effect.Parameters["World"].SetValue(rampWorld);
@@ -315,7 +315,7 @@ namespace TGC.MonoGame.TP
         
         private void DrawMovingPlatforms(Effect effect, Material material)
         {
-            foreach (var movingPlatform in Prefab.MovingPlatforms)
+            foreach (var movingPlatform in Circuito1.MovingPlatforms)
             {
                 var movingPlatformWorld = movingPlatform.World;
                 
@@ -341,14 +341,14 @@ namespace TGC.MonoGame.TP
 
         private void DrawGizmos()
         {
-            foreach (var boundingBox in Prefab.PlatformAabb)
+            foreach (var boundingBox in Circuito1.PlatformAabb)
             {
                 var center = BoundingVolumesExtensions.GetCenter(boundingBox);
                 var extents = BoundingVolumesExtensions.GetExtents(boundingBox);
                 Gizmos.DrawCube(center, extents * 2f, Color.Red);
             }
 
-            foreach (var orientedBoundingBox in Prefab.RampObb)
+            foreach (var orientedBoundingBox in Circuito1.RampObb)
             {
                 var orientedBoundingBoxWorld = Matrix.CreateScale(orientedBoundingBox.Extents * 2f)
                                                * orientedBoundingBox.Orientation *
@@ -356,7 +356,7 @@ namespace TGC.MonoGame.TP
                 Gizmos.DrawCube(orientedBoundingBoxWorld, Color.Red);
             }
 
-            foreach (var movingPlatform in Prefab.MovingPlatforms)
+            foreach (var movingPlatform in Circuito1.MovingPlatforms)
             {
                 var movingBoundingBox = movingPlatform.MovingBoundingBox;
                 var center = BoundingVolumesExtensions.GetCenter(movingBoundingBox);
