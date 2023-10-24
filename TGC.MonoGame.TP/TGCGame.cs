@@ -70,6 +70,8 @@ namespace TGC.MonoGame.TP
         // Sphere position & rotation
         public static readonly Vector3 InitialSpherePosition = new(300f, 10f, 0f);
         public const float InitialSphereYaw = 1.57f;
+
+        //public const float InitialSphereRoll = 1.57f;
         private readonly Matrix _sphereScale = Matrix.CreateScale(5f);
         private const float SphereRadius = 5f;
 
@@ -111,8 +113,9 @@ namespace TGC.MonoGame.TP
                 Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
             
             // Player
-            Player = new Player(_sphereScale, InitialSpherePosition, new BoundingSphere(InitialSpherePosition, SphereRadius), InitialSphereYaw);
+            Player = new Player(_sphereScale, InitialSpherePosition, new BoundingSphere(InitialSpherePosition, SphereRadius), InitialSphereYaw/*, InitialSphereRoll*/);
             
+
             // Gizmos
             Gizmos = new Gizmos.Gizmos
             {
@@ -248,8 +251,9 @@ namespace TGC.MonoGame.TP
             if (!_isMenuOpen)
             {
                 _gameTimer += gameTime.ElapsedGameTime;
-
-                SphereWorld = Player.Update(time, keyboardState);
+                
+                SphereWorld = Player.Update(time, keyboardState/*, mouseState*/);
+                
 
                 TargetCamera.Update(Player.SpherePosition, Player.Yaw, mouseState);
 

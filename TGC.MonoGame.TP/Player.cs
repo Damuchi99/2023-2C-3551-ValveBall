@@ -11,6 +11,7 @@ public class Player
 {
     public Vector3 SpherePosition;
     public float Yaw { get; private set; }
+    public float Roll { get; private set; }
     public float Gravity { private get;  set; } = MaxGravity;
     public int Score { get; private set; }
     private readonly Matrix _sphereScale;
@@ -19,28 +20,32 @@ public class Player
     private float _speed;
     private float _pitchSpeed; 
     private float _yawSpeed;
+    private float _rollSpeed;
     private float _jumpSpeed;
     private bool _isJumping;
     private bool _onGround;
     public BoundingSphere BoundingSphere;
 
-    public Player(Matrix sphereScale, Vector3 spherePosition, BoundingSphere boundingSphere, float yaw)
+    public Player(Matrix sphereScale, Vector3 spherePosition, BoundingSphere boundingSphere, float yaw/*, float roll*/)
     {
         _sphereScale = sphereScale;
         SpherePosition = spherePosition;
         BoundingSphere = boundingSphere;
         Yaw = yaw;
+        //Roll = roll;
     }
 
     public SphereMaterial CurrentSphereMaterial { get; private set; } = SphereMaterial.SphereRubber;
 
     private const float PitchMaxSpeed = 15f;
     private const float YawMaxSpeed = 5.8f;
+    private const float RollMaxSpeed = 5.8f;
     private const float PitchAcceleration = 5f;
     private const float YawAcceleration = 5f;
+    private const float RollAcceleration = 5f;
     private const float MaxGravity = 175f;
 
-    public Matrix Update(float time, KeyboardState keyboardState)
+    public Matrix Update(float time, KeyboardState keyboardState/*, MouseState mouseState*/)
     {
         ChangeSphereMaterial(keyboardState);
         HandleJumping(keyboardState);
@@ -48,11 +53,25 @@ public class Player
         HandleYaw(time, keyboardState);
         var rotationY = Matrix.CreateRotationY(Yaw);
         var forward = rotationY.Forward;
+        //var right = rotationY.Right;
+        HandleMovement(time, keyboardState, forward/*, right*/);
+        var rotationX = Matrix.CreateRotationX(_pitch);
+        //var rotationZ = Matrix.CreateRotationZ(_roll);
+        var translation = Matrix.CreateTranslation(BoundingSphere.Center);
+        RestartPosition(keyboardState);
+        return _sphereScale * rotationX * rotationY * /*rotationZ **/ translation;
+
+        /*ChangeSphereMaterial(keyboardState);
+        HandleJumping(keyboardState);
+        HandleFalling(time);
+        HandleRoll(time, keyboardState);
+        var rotationZ = Matrix.CreateRotationY(Roll);
+        var forward = rotationZ.Forward;
         HandleMovement(time, keyboardState, forward);
         var rotationX = Matrix.CreateRotationX(_pitch);
         var translation = Matrix.CreateTranslation(BoundingSphere.Center);
         RestartPosition(keyboardState);
-        return _sphereScale * rotationX * rotationY * translation;
+        return _sphereScale * rotationX * rotationZ * translation;*/
     }
 
     private void ChangeSphereMaterial(KeyboardState keyboardState)
@@ -96,6 +115,7 @@ public class Player
         _pitchSpeed = 0;
         _speed = 0;
         _jumpSpeed = 0;
+        //_rollSpeed = 0;
     }
 
     private void HandleJumping(KeyboardState keyboardState)
@@ -155,7 +175,7 @@ public class Player
 
         AdjustYawSpeed(time);
     }
-
+    
     private void AdjustYawSpeed(float time)
     {
         _yawSpeed = MathHelper.Clamp(_yawSpeed, -YawMaxSpeed, YawMaxSpeed);
@@ -172,8 +192,43 @@ public class Player
         var yawDecelerationDirection = Math.Sign(_yawSpeed) * -1;
         _yawSpeed += YawAcceleration * time * yawDecelerationDirection;
     }
+    
+    /*private void HandleRoll(float time, KeyboardState keyboardState)
+    {
+        if (keyboardState.IsKeyDown(Keys.A))
+        {
+            AccelerateRoll(RollAcceleration, time);
+        }
+        else if (keyboardState.IsKeyDown(Keys.D))
+        {
+            AccelerateRoll(-RollAcceleration, time);
+        }
+        else
+        {
+            DecelerateRoll(time);
+        }
 
-    private void HandleMovement(float time, KeyboardState keyboardState, Vector3 forward)
+        AdjustRollSpeed(time);
+    }
+
+    private void AdjustRollSpeed(float time)
+    {
+        _rollSpeed = MathHelper.Clamp(_rollSpeed, -RollMaxSpeed, RollMaxSpeed);
+        Roll += _rollSpeed * time;
+    }
+
+    private void AccelerateRoll(float rollAcceleration, float time)
+    {
+        _rollSpeed += rollAcceleration * time;
+    }
+
+    private void DecelerateRoll(float time)
+    {
+        var rollDecelerationDirection = Math.Sign(_rollSpeed) * -1;
+        _rollSpeed += RollAcceleration * time * rollDecelerationDirection;
+    }*/
+
+    private void HandleMovement(float time, KeyboardState keyboardState, Vector3 forward/*, Vector3 right*/)
     {
         if (keyboardState.IsKeyDown(Keys.W))
         {
@@ -191,8 +246,25 @@ public class Player
             DeceleratePitch(time);
         }
 
+        /*if (keyboardState.IsKeyDown(Keys.A))
+        {
+            Accelerate(CurrentSphereMaterial.Acceleration, time);
+            AccelerateRoll(RollAcceleration, time);
+        }
+        else if (keyboardState.IsKeyDown(Keys.D))
+        {
+            Accelerate(-CurrentSphereMaterial.Acceleration, time);
+            AccelerateRoll(-RollAcceleration, time);
+        }
+        else
+        {
+            Decelerate(CurrentSphereMaterial.Acceleration, time);
+            DecelerateRoll(time);
+        }*/
+
         AdjustPitchSpeed(time);
-        AdjustSpeed(time, forward);
+        //AdjustRollSpeed(time);
+        AdjustSpeed(time, forward/*, right*/);
         SolveCollisions();
         UpdateSpherePosition(BoundingSphere.Center);
     }
@@ -202,10 +274,10 @@ public class Player
         SpherePosition = newPosition;
     }
 
-    private void AdjustSpeed(float time, Vector3 forward)
+    private void AdjustSpeed(float time, Vector3 forward/*, Vector3 right*/)
     {
         _speed = MathHelper.Clamp(_speed, -CurrentSphereMaterial.MaxSpeed, CurrentSphereMaterial.MaxSpeed);
-        BoundingSphere.Center += forward * time * _speed;
+        BoundingSphere.Center += forward * /*right **/ time * _speed;
     }
 
     private void AdjustPitchSpeed(float time)
@@ -224,6 +296,23 @@ public class Player
         var pitchDecelerationDirection = Math.Sign(_pitchSpeed) * -1;
         _pitchSpeed += PitchAcceleration * time * pitchDecelerationDirection;
     }
+
+    /*private void AdjustRollSpeed(float time)
+    {
+        _rollSpeed = MathHelper.Clamp(_rollSpeed, -RollMaxSpeed, RollMaxSpeed);
+        _roll += _rollSpeed * time;
+    }
+
+    private void AccelerateRoll(float rollAcceleration,float time)
+    {
+        _rollSpeed -= rollAcceleration * time;
+    }
+    
+    private void DecelerateRoll(float time)
+    {
+        var rollDecelerationDirection = Math.Sign(_rollSpeed) * -1;
+        _rollSpeed += RollAcceleration * time * rollDecelerationDirection;
+    }*/
 
     private void Accelerate(float acceleration, float time)
     {
