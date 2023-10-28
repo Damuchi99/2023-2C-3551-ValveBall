@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
+using Microsoft.Xna.Framework.Media;
 using TGC.MonoGame.TP.Cameras;
+using TGC.MonoGame.TP.Collectible;
+using TGC.MonoGame.TP.Collectible.Coins;
+using TGC.MonoGame.TP.Collectible.PowerUps;
 using TGC.MonoGame.TP.Collisions;
 using TGC.MonoGame.TP.Geometries;
 using TGC.MonoGame.TP.Platform;
@@ -42,6 +48,19 @@ namespace TGC.MonoGame.TP
         // Graphics
         private GraphicsDeviceManager Graphics { get; }
         private SpriteBatch SpriteBatch { get; set; }
+        private SpriteFont _font;
+        
+        // GUI
+        private bool _isMenuOpen;
+        private MenuState _menuState = MenuState.Resume;
+        private TimeSpan _gameTimer = TimeSpan.Zero;
+        
+        // Sounds
+        public static SoundEffect JumpSound { get; private set; }
+        private static SoundEffect OpenMenuSound { get; set; }
+        private static SoundEffect SelectMenuSound { get; set; }
+        private static SoundEffect ClickMenuSound { get; set; }
+        private static Song Song { get; set; }
         
         // Skybox
         private SkyBox SkyBox { get; set; }
@@ -66,15 +85,10 @@ namespace TGC.MonoGame.TP
 
         // Effects
         private Effect BlinnPhongEffect { get; set; }
-        private Effect StarShader { get; set; }
 
         // Models
-        private Model StarModel { get; set; }
         private Model SphereModel { get; set; }
-        private Player _player;
-        
-        // Collectibles
-        private readonly List<Star> _stars = new();
+        private static Player Player { get; set; }
         
         // Colliders
         private Gizmos.Gizmos Gizmos { get; set; }
@@ -107,7 +121,7 @@ namespace TGC.MonoGame.TP
                 Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
             
             // Player
-            _player = new Player(_sphereScale, InitialSpherePosition, new BoundingSphere(InitialSpherePosition, SphereRadius), InitialSphereYaw);
+            Player = new Player(_sphereScale, InitialSpherePosition, new BoundingSphere(InitialSpherePosition, SphereRadius), InitialSphereYaw);
             
             // Gizmos
             Gizmos = new Gizmos.Gizmos
@@ -115,20 +129,63 @@ namespace TGC.MonoGame.TP
                 Enabled = false
             };
             
-            // Stars
-            var offset = 0f;
-            for (var index = 0; index < 2; index++)
-            {
-                _stars.Add(new Star(new Vector3(150f + offset, 5f, 0f), 0.5f));
-                offset -= 600f;
-            }
-            
+            // Collectibles
+            CreatePowerUps();
+            CreateCoins(0, 0, 0);
+            CreateCoins(-600, 0, 0);
+
+            // Map
             Prefab.CreateSquareCircuit(Vector3.Zero);
             Prefab.CreateSquareCircuit(new Vector3(-600, 0f, 0f));
             Prefab.CreateBridge();
             Prefab.CreateSwitchbackRamp();
+
+            // Obstacles
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(150f, 16f, 260f));
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(150f, 16f, -140f));
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(-450f, 16f, 260f));
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(-450f, 16f, -140f));
             
             base.Initialize();
+        }
+
+        private static void CreateCoins(float xOffset, float yOffset, float zOffset)
+        {
+            // Side
+            CollectibleManager.CreateCollectible<Coin>(300f + xOffset, 13f + yOffset, 50f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(300f + xOffset, 13f + yOffset, 75f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(300f + xOffset, 13f + yOffset, 95f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(300f + xOffset, 13f + yOffset, -50f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(300f + xOffset, 13f + yOffset, -75f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(300f + xOffset, 13f + yOffset, -95f + zOffset);
+            
+            CollectibleManager.CreateCollectible<Coin>(0f + xOffset, 13f + yOffset, 50f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(0f + xOffset, 13f + yOffset, 75f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(0f + xOffset, 13f + yOffset, 95f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(0f + xOffset, 13f + yOffset, -50f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(0f + xOffset, 13f + yOffset, -75f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(0f + xOffset, 13f + yOffset, -95f + zOffset);
+
+            // Parable
+            CollectibleManager.CreateCollectible<Coin>(230f + xOffset, 23f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(210f + xOffset, 28f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(190f + xOffset, 33f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(170f + xOffset, 38f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(150f + xOffset, 38f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(70f + xOffset, 23f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(90f + xOffset, 28f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(110f + xOffset, 33f + yOffset, 0f + zOffset);
+            CollectibleManager.CreateCollectible<Coin>(130f + xOffset, 38f + yOffset, 0f + zOffset);
+        }
+
+        private static void CreatePowerUps()
+        {
+            CollectibleManager.CreateCollectible<LowGravity>(150f, 5f, 0f);
+            CollectibleManager.CreateCollectible<LowGravity>(-450f, 5f, 0f);
+            CollectibleManager.CreateCollectible<SpeedUp>(150f, 10f, -200f);
+            CollectibleManager.CreateCollectible<SpeedUp>(150f, 10f, 200f);
+            CollectibleManager.CreateCollectible<SpeedUp>(-450f, 10f, -200f);
+            CollectibleManager.CreateCollectible<SpeedUp>(-450f, 10f, 200f);
         }
 
         /// <summary>
@@ -139,6 +196,7 @@ namespace TGC.MonoGame.TP
         protected override void LoadContent()
         {
             SpriteBatch = new SpriteBatch(GraphicsDevice);
+            _font = Content.Load<SpriteFont>(ContentFolderSpriteFonts + "CascadiaCode/CascadiaCodePL");
             
             // Diffuse
             var platformGreenDiffuse = Content.Load<Texture2D>(ContentFolderTextures + "platform_green_diffuse");
@@ -164,10 +222,8 @@ namespace TGC.MonoGame.TP
             // Platform
             BoxPrimitive = new BoxPrimitive(GraphicsDevice, Vector3.One, platformGreenDiffuse);
             
-            // Star
-            StarModel = Content.Load<Model>(ContentFolder3D + "star/Gold_Star");
-            StarShader = Content.Load<Effect>(ContentFolderEffects + "StarShader");
-            loadEffectOnMesh(StarModel, StarShader);
+            // Collectibles
+            CollectibleManager.LoadCollectibles(Content);
             
             // Sphere
             SphereModel = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
@@ -180,6 +236,15 @@ namespace TGC.MonoGame.TP
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "/skyboxes/skybox");
             var skyBoxEffect = Content.Load<Effect>(ContentFolderEffects + "SkyBox");
             SkyBox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, 1000f);
+            
+            // Sounds
+            JumpSound = Content.Load<SoundEffect>(ContentFolderSounds + "jump");
+            OpenMenuSound = Content.Load<SoundEffect>(ContentFolderSounds + "open_menu");
+            SelectMenuSound = Content.Load<SoundEffect>(ContentFolderSounds + "select_menu");
+            ClickMenuSound = Content.Load<SoundEffect>(ContentFolderSounds + "click_menu");
+            Song = Content.Load<Song>(ContentFolderMusic + "classic_vibe");
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Play(Song);
             
             // Gizmos
             Gizmos.LoadContent(GraphicsDevice, Content);
@@ -198,24 +263,86 @@ namespace TGC.MonoGame.TP
             var mouseState = Mouse.GetState();
             var time = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
 
-            SphereWorld = _player.Update(time, keyboardState);
-
-            if (keyboardState.IsKeyDown(Keys.Escape))
+            if (keyboardState.IsKeyDown(Keys.Escape) && !_isMenuOpen)
             {
-                Exit();
+                MediaPlayer.Pause();
+                OpenMenuSound.Play();
+                _isMenuOpen = true;
+            }
+            
+            UpdateMenuSelection(keyboardState);
+
+            if (!_isMenuOpen)
+            {
+                _gameTimer += gameTime.ElapsedGameTime;
+
+                SphereWorld = Player.Update(time, keyboardState);
+
+                TargetCamera.Update(Player.SpherePosition, Player.Yaw, mouseState);
+
+                SetLightPosition(new Vector3(150f, 750f, 0f));
+
+                Prefab.UpdateMovingPlatforms();
+                
+                Prefab.UpdateMovingObstacles(gameTime);
+
+                UpdateCollectibles(gameTime);
+
+                Gizmos.UpdateViewProjection(TargetCamera.View, TargetCamera.Projection);
+                
+                MediaPlayer.Resume();
+            }
+            base.Update(gameTime);
+        }
+
+        private bool _wasKeyPressed;
+
+        private void UpdateMenuSelection(KeyboardState keyboardState)
+        {
+            if (!_isMenuOpen) return;
+
+            if (keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W))
+            {
+                if (!_wasKeyPressed && _menuState > MenuState.Resume)
+                {
+                    _menuState--;
+                    _wasKeyPressed = true;
+                    SelectMenuSound.Play();
+                }
+            }
+            else if (keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S))
+            {
+                if (!_wasKeyPressed && _menuState < MenuState.Exit)
+                {
+                    _menuState++;
+                    _wasKeyPressed = true;
+                    SelectMenuSound.Play();
+                }
+            }
+            else
+            {
+                _wasKeyPressed = false;
             }
 
-            TargetCamera.Update(_player.SpherePosition, _player.Yaw, mouseState);
-            
-            SetLightPosition(new Vector3(150f, 750f, 0f));
+            if (!keyboardState.IsKeyDown(Keys.Enter)) return;
+            ClickMenuSound.Play();
+            HandleMenuSelection();
+        }
 
-            Prefab.UpdateMovingPlatforms();
-
-            UpdateStars(gameTime);
-
-            Gizmos.UpdateViewProjection(TargetCamera.View, TargetCamera.Projection);
-
-            base.Update(gameTime);
+        private void HandleMenuSelection()
+        {
+            switch (_menuState)
+            {
+                case MenuState.Resume:
+                    _isMenuOpen = false;
+                    break;
+                case MenuState.StopMusic:
+                    MediaPlayer.Stop();
+                    break;
+                case MenuState.Exit:
+                    Exit();
+                    break;
+            }
         }
 
         private void SetLightPosition(Vector3 lightPosition)
@@ -224,11 +351,11 @@ namespace TGC.MonoGame.TP
             BlinnPhongEffect.Parameters["eyePosition"].SetValue(TargetCamera.Position);
         }
 
-        private void UpdateStars(GameTime gameTime)
+        private static void UpdateCollectibles(GameTime gameTime)
         {
-            foreach (var star in _stars)
+            foreach (var collectible in CollectibleManager.Collectibles)
             {
-                star.Update(gameTime);
+                collectible.Update(gameTime, Player);
             }
         }
 
@@ -239,16 +366,19 @@ namespace TGC.MonoGame.TP
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             
             DrawPlatforms(BlinnPhongEffect, Material.Platform);
             
             DrawRamps(BlinnPhongEffect, Material.Platform); 
 
             DrawMovingPlatforms(BlinnPhongEffect, Material.MovingPlatform);
+            
+            DrawMovingObstacles(BlinnPhongEffect, Material.Metal);
+            
+            DrawTexturedModel(SphereWorld, SphereModel, BlinnPhongEffect, Player.CurrentSphereMaterial.Material);
 
-            DrawTexturedModel(SphereWorld, SphereModel, BlinnPhongEffect, _player.CurrentSphereMaterial.Material);
-
-            DrawStars(_stars, gameTime);
+            DrawCollectibles(CollectibleManager.Collectibles, gameTime);
             
             DrawGizmos();
             Gizmos.Draw();
@@ -260,55 +390,90 @@ namespace TGC.MonoGame.TP
             
             SkyBox.Draw(TargetCamera.View, TargetCamera.Projection, new Vector3(0f,0f,0f));
             GraphicsDevice.RasterizerState = originalRasterizerState;
+
+            const int menuHeight = 60;
+            var center = GraphicsDevice.Viewport.Bounds.Center.ToVector2();
+            if (_isMenuOpen)
+            {
+                DrawMenu(center, menuHeight);
+            }
             
-            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            DrawGui();
+
             base.Draw(gameTime);
+        }
+        
+        private void DrawMenu(Vector2 center, int menuHeight)
+        {
+            SpriteBatch.Begin();
+            
+            var position = center - new Vector2(30, menuHeight / 2f);
+            SpriteBatch.DrawString(_font, "Resume", position, _menuState == MenuState.Resume ? Color.Yellow : Color.White);
+            position.Y += 30;
+            
+            SpriteBatch.DrawString(_font, "Stop Music", position, _menuState == MenuState.StopMusic ? Color.Yellow : Color.White);
+            position.Y += 30;
+            
+            SpriteBatch.DrawString(_font, "Exit", position, _menuState == MenuState.Exit ? Color.Yellow : Color.White);
+            
+            SpriteBatch.End();
+        }
+
+        private void DrawGui()
+        {
+            SpriteBatch.Begin();
+
+            var timerText = _gameTimer.ToString(@"mm\:ss");
+            var timerSize = _font.MeasureString(timerText);
+            var timerPosition = new Vector2((GraphicsDevice.Viewport.Width - timerSize.X) / 2, 10);
+            SpriteBatch.DrawString(_font, timerText, timerPosition, Color.White);
+
+            SpriteBatch.DrawString(_font, "Score:" + Player.Score, new Vector2(10, 10), Color.White);
+
+            var sphereNames = new List<string> { "MarbleSphere", "RubberSphere", "MetalSphere" };
+            for (var i = 0; i < sphereNames.Count; i++)
+            {
+                var spherePosition = new Vector2(GraphicsDevice.Viewport.Width - 220, 10 + i * 20);
+                SpriteBatch.DrawString(_font, (i + 1) + ": " + sphereNames[i], spherePosition, Color.White);
+            }
+
+            const string zoomMessage = "Zoom: Use mouse wheel";
+            var zoomMessageSize = _font.MeasureString(zoomMessage);
+            var zoomMessagePosition = new Vector2(GraphicsDevice.Viewport.Width - zoomMessageSize.X - 10,
+                GraphicsDevice.Viewport.Height - zoomMessageSize.Y - 10);
+            SpriteBatch.DrawString(_font, zoomMessage, zoomMessagePosition, Color.White);
+            
+            const string restartMessage = "Press R to restart from last checkpoint";
+            var restartMessageSize = _font.MeasureString(restartMessage);
+            var restartMessagePosition = new Vector2((GraphicsDevice.Viewport.Width - restartMessageSize.X) / 2,
+                GraphicsDevice.Viewport.Height - restartMessageSize.Y - 30);
+            SpriteBatch.DrawString(_font, restartMessage, restartMessagePosition, Color.White);
+
+            SpriteBatch.End();
+        }
+
+        private void DrawTexturedModel(Matrix worldMatrix, Model model, Effect effect, Material material){
+            SetBlinnPhongParameters(effect, material, Vector2.One * 5f, worldMatrix, TargetCamera);
+            foreach (var mesh in model.Meshes)
+            {   
+                mesh.Draw();
+            }
         }
 
         private void DrawPlatforms(Effect effect, Material material)
         {
             foreach (var platformWorld in Prefab.PlatformMatrices)
             {
-                effect.CurrentTechnique = effect.Techniques["NormalMapping"];
-                effect.Parameters["World"].SetValue(platformWorld);
-                effect.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(platformWorld)));
-                effect.Parameters["WorldViewProjection"].SetValue(platformWorld * TargetCamera.View * TargetCamera.Projection);
-            
-                effect.Parameters["ModelTexture"].SetValue(material.Diffuse);
-                effect.Parameters["NormalTexture"].SetValue(material.Normal);
-                effect.Parameters["Tiling"].SetValue(Vector2.One * 3f);
-                effect.Parameters["ambientColor"].SetValue(material.AmbientColor);
-                effect.Parameters["diffuseColor"].SetValue(material.DiffuseColor);
-                effect.Parameters["specularColor"].SetValue(material.SpecularColor);
-                effect.Parameters["KAmbient"].SetValue(material.KAmbient);
-                effect.Parameters["KDiffuse"].SetValue(material.KDiffuse);
-                effect.Parameters["KSpecular"].SetValue(material.KSpecular);
-                effect.Parameters["shininess"].SetValue(material.Shininess);
-
+                SetBlinnPhongParameters(effect, material, Vector2.One * 3f, platformWorld, TargetCamera);
                 BoxPrimitive.Draw(effect);
             }
         }
-        
+
         private void DrawRamps(Effect effect, Material material)
         {
             foreach (var rampWorld in Prefab.RampMatrices)
             {
-                effect.CurrentTechnique = effect.Techniques["NormalMapping"];
-                effect.Parameters["World"].SetValue(rampWorld);
-                effect.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(rampWorld)));
-                effect.Parameters["WorldViewProjection"].SetValue(rampWorld * TargetCamera.View * TargetCamera.Projection);
-            
-                effect.Parameters["ModelTexture"].SetValue(material.Diffuse);
-                effect.Parameters["NormalTexture"].SetValue(material.Normal);
-                effect.Parameters["Tiling"].SetValue(Vector2.One * 2f);
-                effect.Parameters["ambientColor"].SetValue(material.AmbientColor);
-                effect.Parameters["diffuseColor"].SetValue(material.DiffuseColor);
-                effect.Parameters["specularColor"].SetValue(material.SpecularColor);
-                effect.Parameters["KAmbient"].SetValue(material.KAmbient);
-                effect.Parameters["KDiffuse"].SetValue(material.KDiffuse);
-                effect.Parameters["KSpecular"].SetValue(material.KSpecular);
-                effect.Parameters["shininess"].SetValue(material.Shininess);
-
+                SetBlinnPhongParameters(effect, material,Vector2.One * 2f, rampWorld, TargetCamera);
                 BoxPrimitive.Draw(effect);
             }
         }
@@ -318,25 +483,38 @@ namespace TGC.MonoGame.TP
             foreach (var movingPlatform in Prefab.MovingPlatforms)
             {
                 var movingPlatformWorld = movingPlatform.World;
-                
-                effect.CurrentTechnique = effect.Techniques["NormalMapping"];
-                effect.Parameters["World"].SetValue(movingPlatformWorld);
-                effect.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(movingPlatformWorld)));
-                effect.Parameters["WorldViewProjection"].SetValue(movingPlatformWorld * TargetCamera.View * TargetCamera.Projection);
-            
-                effect.Parameters["ModelTexture"].SetValue(material.Diffuse);
-                effect.Parameters["NormalTexture"].SetValue(material.Normal);
-                effect.Parameters["Tiling"].SetValue(Vector2.One * 3f);
-                effect.Parameters["ambientColor"].SetValue(material.AmbientColor);
-                effect.Parameters["diffuseColor"].SetValue(material.DiffuseColor);
-                effect.Parameters["specularColor"].SetValue(material.SpecularColor);
-                effect.Parameters["KAmbient"].SetValue(material.KAmbient);
-                effect.Parameters["KDiffuse"].SetValue(material.KDiffuse);
-                effect.Parameters["KSpecular"].SetValue(material.KSpecular);
-                effect.Parameters["shininess"].SetValue(material.Shininess);
-
+                SetBlinnPhongParameters(effect, material, Vector2.One * 3f, movingPlatformWorld, TargetCamera);
                 BoxPrimitive.Draw(effect);
             }
+        }
+        
+        private void DrawMovingObstacles(Effect effect, Material material)
+        {
+            foreach (var movingObstacle in Prefab.MovingObstacles)
+            {
+                var movingPlatformWorld = movingObstacle.World;
+                SetBlinnPhongParameters(effect, material, Vector2.One * 3f, movingPlatformWorld, TargetCamera);
+                BoxPrimitive.Draw(effect);
+            }
+        }
+        
+        private static void SetBlinnPhongParameters(Effect effect, Material material, Vector2 tiling, Matrix worldMatrix, 
+            Camera camera)
+        {
+            effect.CurrentTechnique = effect.Techniques["NormalMapping"];
+            effect.Parameters["World"].SetValue(worldMatrix);
+            effect.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(worldMatrix)));
+            effect.Parameters["WorldViewProjection"].SetValue(worldMatrix * camera.View * camera.Projection);
+            effect.Parameters["ModelTexture"].SetValue(material.Diffuse);
+            effect.Parameters["NormalTexture"].SetValue(material.Normal);
+            effect.Parameters["Tiling"].SetValue(tiling);
+            effect.Parameters["ambientColor"].SetValue(material.AmbientColor);
+            effect.Parameters["diffuseColor"].SetValue(material.DiffuseColor);
+            effect.Parameters["specularColor"].SetValue(material.SpecularColor);
+            effect.Parameters["KAmbient"].SetValue(material.KAmbient);
+            effect.Parameters["KDiffuse"].SetValue(material.KDiffuse);
+            effect.Parameters["KSpecular"].SetValue(material.KSpecular);
+            effect.Parameters["shininess"].SetValue(material.Shininess);
         }
 
         private void DrawGizmos()
@@ -363,17 +541,26 @@ namespace TGC.MonoGame.TP
                 var extents = BoundingVolumesExtensions.GetExtents(movingBoundingBox);
                 Gizmos.DrawCube(center, extents * 2f, Color.GreenYellow);
             }
+
+            foreach (var movingObstacle in Prefab.MovingObstacles)
+            {
+                var movingBoundingBox = movingObstacle.MovingBoundingBox;
+                var center = BoundingVolumesExtensions.GetCenter(movingBoundingBox);
+                var extents = BoundingVolumesExtensions.GetExtents(movingBoundingBox);
+                Gizmos.DrawCube(center, extents * 2f, Color.GreenYellow);
+            }
             
-            Gizmos.DrawSphere(_player.BoundingSphere.Center, _player.BoundingSphere.Radius * Vector3.One, Color.Yellow);
+            Gizmos.DrawSphere(Player.BoundingSphere.Center, Player.BoundingSphere.Radius * Vector3.One, Color.Yellow);
         }
 
-        private void DrawStars(List<Star> stars, GameTime gameTime)
+        private void DrawCollectibles(List<Collectible.Collectible> collectibles, GameTime gameTime)
         {
-            foreach (var star in stars)
+            foreach (var collectible in collectibles)
             {
-                DrawModel(star.World, StarModel, StarShader, gameTime);
-                var center = BoundingVolumesExtensions.GetCenter(star.BoundingBox);
-                var extents = BoundingVolumesExtensions.GetExtents(star.BoundingBox);
+                if (!collectible.ShouldDraw) continue;
+                DrawModel(collectible.World, collectible.Model, collectible.Shader, gameTime);
+                var center = BoundingVolumesExtensions.GetCenter(collectible.BoundingBox);
+                var extents = BoundingVolumesExtensions.GetExtents(collectible.BoundingBox);
                 Gizmos.DrawCube(center, extents * 2f, Color.Red);
             }
         }
@@ -382,35 +569,12 @@ namespace TGC.MonoGame.TP
             effect.Parameters["View"].SetValue(TargetCamera.View);
             effect.Parameters["Projection"].SetValue(TargetCamera.Projection);
             effect.Parameters["DiffuseColor"]?.SetValue(Color.Yellow.ToVector3());
-            effect.Parameters["Time"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
+            effect.Parameters["Time"]?.SetValue((float)gameTime.TotalGameTime.TotalSeconds);
 
             foreach (var mesh in model.Meshes)
             {
                 var meshMatrix = mesh.ParentBone.Transform;
                 effect.Parameters["World"].SetValue(meshMatrix * world);
-                mesh.Draw();
-            }
-        }
-        
-        private void DrawTexturedModel(Matrix worldMatrix, Model model, Effect effect, Material material){
-            effect.CurrentTechnique = effect.Techniques["NormalMapping"];
-            effect.Parameters["World"].SetValue(worldMatrix);
-            effect.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(worldMatrix)));
-            effect.Parameters["WorldViewProjection"].SetValue(worldMatrix * TargetCamera.View * TargetCamera.Projection);
-            
-            effect.Parameters["ModelTexture"].SetValue(material.Diffuse);
-            effect.Parameters["NormalTexture"]?.SetValue(material.Normal);
-            effect.Parameters["Tiling"].SetValue(Vector2.One * 5f);
-            effect.Parameters["ambientColor"].SetValue(material.AmbientColor);
-            effect.Parameters["diffuseColor"].SetValue(material.DiffuseColor);
-            effect.Parameters["specularColor"].SetValue(material.SpecularColor);
-            effect.Parameters["KAmbient"].SetValue(material.KAmbient);
-            effect.Parameters["KDiffuse"].SetValue(material.KDiffuse);
-            effect.Parameters["KSpecular"].SetValue(material.KSpecular);
-            effect.Parameters["shininess"].SetValue(material.Shininess);
-            
-            foreach (var mesh in model.Meshes)
-            {   
                 mesh.Draw();
             }
         }
@@ -426,7 +590,7 @@ namespace TGC.MonoGame.TP
             base.UnloadContent();
         }
 
-        private static void loadEffectOnMesh(Model model,Effect effect)
+        public static void loadEffectOnMesh(Model model,Effect effect)
         {
             foreach (var mesh in model.Meshes)
             {
