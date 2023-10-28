@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using TGC.MonoGame.TP.Collectible.Coins;
 using TGC.MonoGame.TP.Collectible.PowerUps;
+using TGC.MonoGame.TP.Collectible.Checkpoint;
 
 namespace TGC.MonoGame.TP.Collectible;
 
@@ -25,7 +26,8 @@ public static class CollectibleManager
         {
             { typeof(LowGravity), content.Load<Model>(TGCGame.ContentFolder3D + "collectibles/Gold_Star") },
             { typeof(SpeedUp), content.Load<Model>(TGCGame.ContentFolder3D + "collectibles/speed_power") },
-            { typeof(Coin), content.Load<Model>(TGCGame.ContentFolder3D + "collectibles/coin") }
+            { typeof(Coin), content.Load<Model>(TGCGame.ContentFolder3D + "collectibles/coin") },
+            //{ typeof(Checkpoint), content.Load<Model>(TGCGame.ContentFolder3D + "collectibles/checkpoint") }
         };
         
         var collectibleSounds = new Dictionary<Type, SoundEffect>
