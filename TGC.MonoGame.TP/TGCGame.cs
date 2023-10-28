@@ -135,7 +135,7 @@ namespace TGC.MonoGame.TP
             CreateCoins(-600, 0, 0);
 
             // Map
-            Prefab.AcceleratedJumps(0f);
+            Prefab.JumpingElevator();
             
             base.Initialize();
         }

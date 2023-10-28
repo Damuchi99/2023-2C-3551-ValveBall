@@ -295,13 +295,13 @@ public static class Prefab
         const float heightIncrement = 35;
         var platformSize = new Vector3(50f, 6f, 50f);
         for (int floors = 0; floors < 3; floors++) {
-            CreatePlatform(platformSize, new Vector3(300f, height, 0f));
+            CreatePlatform(platformSize, new Vector3(600f, height, 0f));
             height += heightIncrement;
-            CreatePlatform(platformSize, new Vector3(250f, height, 0f));
+            CreatePlatform(platformSize, new Vector3(550f, height, 0f));
             height += heightIncrement;
-            CreatePlatform(platformSize, new Vector3(250f, height, -50f));
+            CreatePlatform(platformSize, new Vector3(550f, height, -50f));
             height += heightIncrement;
-            CreatePlatform(platformSize, new Vector3(300f, height, -50f));
+            CreatePlatform(platformSize, new Vector3(600f, height, -50f));
             height += heightIncrement;
         }
             
