@@ -173,7 +173,7 @@
 /processorParam:Scale=1
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
-/build:Models/collectibles/checkpoint.fbx
+/build:Models/collectibles/checkpoint.fbx;
 
 #begin Models/geometries/sphere.fbx
 /importer:FbxImporter
