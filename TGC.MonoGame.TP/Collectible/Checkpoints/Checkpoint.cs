@@ -1,9 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace TGC.MonoGame.TP.Collectible.Checkpoint;
+namespace TGC.MonoGame.TP.Collectible.Checkpoints;
 
 public class Checkpoint : Collectible
 {
+    // private const int Value = 1;
     private const float DefaultScale = 0.1f;
 
     public Checkpoint(Vector3 position) 
@@ -15,6 +16,8 @@ public class Checkpoint : Collectible
 
     protected override void OnCollected(Player player)
     {
-        player.ChangeRestartPosition(Position);
+        player.IncreaseScore(1);
+        // player.ChangeRestartPosition(Position);
+        // player.IncreaseScore(Value);
     }
 }

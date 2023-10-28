@@ -10,6 +10,7 @@ using TGC.MonoGame.TP.Cameras;
 using TGC.MonoGame.TP.Collectible;
 using TGC.MonoGame.TP.Collectible.Coins;
 using TGC.MonoGame.TP.Collectible.PowerUps;
+using TGC.MonoGame.TP.Collectible.Checkpoints;
 using TGC.MonoGame.TP.Collisions;
 using TGC.MonoGame.TP.Geometries;
 using TGC.MonoGame.TP.Platform;
@@ -132,6 +133,7 @@ namespace TGC.MonoGame.TP
             // Collectibles
             CreatePowerUps();
             CreateCoins(0, 0, 0);
+            CreateCheckpoints();
             CreateCoins(-600, 0, 0);
 
             // Map
@@ -187,6 +189,13 @@ namespace TGC.MonoGame.TP
             CollectibleManager.CreateCollectible<SpeedUp>(-450f, 10f, -200f);
             CollectibleManager.CreateCollectible<SpeedUp>(-450f, 10f, 200f);
         }
+
+        private static void CreateCheckpoints()
+        {
+            CollectibleManager.CreateCollectible<Checkpoint>(300,0f,100f);
+
+        }
+        
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo, despues de Initialize.
