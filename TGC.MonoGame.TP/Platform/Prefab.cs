@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using TGC.MonoGame.TP.Collisions;
 
 namespace TGC.MonoGame.TP.Platform;
 
-public static class Circuito1
+public static class Prefab
 {
     public static readonly List<Matrix> PlatformMatrices =  new();
     public static readonly List<Matrix> RampMatrices =  new();
     public static readonly List<BoundingBox> PlatformAabb =  new();
     public static readonly List<OrientedBoundingBox> RampObb =  new();
     public static readonly List<MovingPlatform> MovingPlatforms =  new();
+    public static readonly List<MovingObstacle> MovingObstacles =  new();
     
     public static void CreateSquareCircuit(Vector3 offset)
     {
@@ -32,6 +34,21 @@ public static class Circuito1
         CreateMovingPlatform(new Vector3(50f, 6f, 100f), new Vector3(150f, 0f, 0f) + offset);
             
         CreateRamps(offset);
+    }
+
+    public static void CreateMovingObstacle(Vector3 scale, Vector3 position){
+        var obstacleWorld = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position);
+        var obstacleBoundingBox = BoundingVolumesExtensions.FromMatrix(obstacleWorld);
+        var movingObstacle = new MovingObstacle(obstacleWorld, scale, position, obstacleBoundingBox);
+        MovingObstacles.Add(movingObstacle);
+    }
+
+    public static void UpdateMovingObstacles(GameTime gameTime)
+    {
+        foreach (var movingObstacle in MovingObstacles)
+        {
+            movingObstacle.Update(gameTime);
+        }
     }
 
     private static void CreateMovingPlatform(Vector3 scale, Vector3 position)
@@ -268,5 +285,75 @@ public static class Circuito1
         var platformWorld = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position);
         PlatformAabb.Add(BoundingVolumesExtensions.FromMatrix(platformWorld));
         PlatformMatrices.Add(platformWorld);
+    }
+    
+    public static void JumpingElevator()
+    {
+        // eliminar el "nivel 1"
+            
+        var height = 0f;
+        const float heightIncrement = 35;
+        var platformSize = new Vector3(50f, 6f, 50f);
+        for (int floors = 0; floors < 3; floors++) {
+            CreatePlatform(platformSize, new Vector3(300f, height, 0f));
+            height += heightIncrement;
+            CreatePlatform(platformSize, new Vector3(250f, height, 0f));
+            height += heightIncrement;
+            CreatePlatform(platformSize, new Vector3(250f, height, -50f));
+            height += heightIncrement;
+            CreatePlatform(platformSize, new Vector3(300f, height, -50f));
+            height += heightIncrement;
+        }
+            
+        CreatePlatform(platformSize, new Vector3(300f, height, 0f)); // checkpoint
+        
+        AcceleratedJumps(height);
+    }
+    
+    
+    public static void AcceleratedJumps(float height)
+    {
+        float separation = -80;
+        var platformSize = new Vector3(50f, 6f, 50f);
+        CreatePlatform(platformSize, new Vector3(600f, height, 0f)); // checkpoint
+            
+        for (int jumps = 2; jumps < 8; jumps++) {
+            CreatePlatform(platformSize, new Vector3(600f + separation, height, 0));
+            separation -= 40f * jumps;
+        }
+        
+        ObstacleRace(separation - 75, height);
+    }
+
+    private static void ObstacleRace(float separation, float height)
+    {
+        var platformSize = new Vector3(100f, 6f, 100f);
+        
+        CreatePlatform(new Vector3(100f, 6f, 50f), new Vector3(600 + separation + 100f, height, 0)); // checkpoint
+
+        for (int platforms = 0; platforms < 10; platforms++) {
+            CreatePlatform(platformSize, new Vector3(600f + separation - 100f * platforms, height, 0));
+            CreateBoxLine(new Vector3(600f + separation - 100f * platforms, height, 0));
+        }
+            
+        for (int platforms = 10; platforms < 20; platforms++) {
+            CreatePlatform(platformSize, new Vector3(600f + separation - 100f * platforms, height, 0));
+            // agregar obstaculos moviles
+        }
+    }
+
+    private static void CreateBoxLine(Vector3 position)
+    {
+        Random random = new Random();
+        switch (random.Next(1, 4))
+        {
+            case 1:
+                
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+        }
     }
 }

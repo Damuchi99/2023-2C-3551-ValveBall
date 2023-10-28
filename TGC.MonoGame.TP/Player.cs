@@ -11,6 +11,8 @@ public class Player
 {
     public Vector3 SpherePosition;
     public float Yaw { get; private set; }
+    public float Gravity { private get;  set; } = MaxGravity;
+    public int Score { get; private set; }
     private readonly Matrix _sphereScale;
     private float _pitch;
     private float _roll;
@@ -20,6 +22,7 @@ public class Player
     private float _jumpSpeed;
     private bool _isJumping;
     private bool _onGround;
+    private bool _isRollingSoundPlaying = false;
     public BoundingSphere BoundingSphere;
 
     public Player(Matrix sphereScale, Vector3 spherePosition, BoundingSphere boundingSphere, float yaw)
@@ -36,12 +39,11 @@ public class Player
     private const float YawMaxSpeed = 5.8f;
     private const float PitchAcceleration = 5f;
     private const float YawAcceleration = 5f;
-    private const float Gravity = 175f;
+    private const float MaxGravity = 175f;
 
     public Matrix Update(float time, KeyboardState keyboardState)
     {
         ChangeSphereMaterial(keyboardState);
-
         HandleJumping(keyboardState);
         HandleFalling(time);
         HandleYaw(time, keyboardState);
@@ -79,6 +81,16 @@ public class Player
         Yaw = TGCGame.InitialSphereYaw;
         SetSpeedToZero();
     }
+    
+    public void ResetGravity()
+    {
+        Gravity = MaxGravity;
+    }
+
+    public void IncreaseScore(int value)
+    {
+        Score += value;
+    }
 
     private void SetSpeedToZero()
     {
@@ -104,6 +116,7 @@ public class Player
     
     private void StartJump()
     {
+        TGCGame.JumpSound.Play();
         _isJumping = true;
         _onGround = false;
         _jumpSpeed += CalculateJumpSpeed();
@@ -239,6 +252,8 @@ public class Player
         
         DetectMovingCollisions(sphereCenter, collisions);
 
+
+
         // Solve first near collisions
         collisions.Sort((a, b) => a.Distance.CompareTo(b.Distance));
         
@@ -251,7 +266,7 @@ public class Player
     
     private void DetectAabbCollisions(Vector3 sphereCenter, List<CollisionInfo> collisions)
     {
-        foreach (var collider in Circuito1.PlatformAabb)
+        foreach (var collider in Prefab.PlatformAabb)
         {
             if (!collider.Intersects(BoundingSphere)) continue;
 
@@ -267,7 +282,7 @@ public class Player
     
     private void DetectObbCollisions(Vector3 sphereCenter, List<CollisionInfo> collisions)
     {
-        foreach (var collider in Circuito1.RampObb)
+        foreach (var collider in Prefab.RampObb)
         {
             if (!collider.Intersects(BoundingSphere, out _, out _)) continue;
 
@@ -282,7 +297,7 @@ public class Player
 
     private void DetectMovingCollisions(Vector3 sphereCenter, List<CollisionInfo> collisions)
     {
-        foreach (var movingPlatform in Circuito1.MovingPlatforms)
+        foreach (var movingPlatform in Prefab.MovingPlatforms)
         {
             var collider = movingPlatform.MovingBoundingBox;
 
@@ -291,6 +306,22 @@ public class Player
             var closestPoint = BoundingVolumesExtensions.ClosestPoint(collider, sphereCenter);
             var distance = Vector3.Distance(closestPoint, sphereCenter);
             var platformMovement = movingPlatform.Position - movingPlatform.PreviousPosition;
+            collisions.Add(new CollisionInfo(closestPoint, distance, platformMovement));
+
+            if (!(sphereCenter.Y > collider.Max.Y)) continue;
+            _onGround = true;
+            EndJump();
+        }
+
+        foreach (var movingObstacle in Prefab.MovingObstacles)
+        {
+            var collider = movingObstacle.MovingBoundingBox;
+
+            if (!collider.Intersects(BoundingSphere)) continue;
+
+            var closestPoint = BoundingVolumesExtensions.ClosestPoint(collider, sphereCenter);
+            var distance = Vector3.Distance(closestPoint, sphereCenter);
+            var platformMovement = movingObstacle.Position - movingObstacle.PreviousPosition;
             collisions.Add(new CollisionInfo(closestPoint, distance, platformMovement));
 
             if (!(sphereCenter.Y > collider.Max.Y)) continue;
