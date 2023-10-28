@@ -53,7 +53,7 @@ public abstract class Collectible
     private void HandleCollection(Player player)
     {
         if (!CanInteract || !player.BoundingSphere.Intersects(BoundingBox)) return;
-        Sound.Play();
+        Sound?.Play();
         OnCollected(player);
         ShouldDraw = false;
         CanInteract = false;
