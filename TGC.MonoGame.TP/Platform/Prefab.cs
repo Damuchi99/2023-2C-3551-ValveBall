@@ -9,6 +9,7 @@ public static class Prefab
 {
     public static readonly List<Matrix> PlatformMatrices =  new();
     public static readonly List<Matrix> RampMatrices =  new();
+    public static readonly List<Matrix> BoxMatrices = new();
     public static readonly List<BoundingBox> PlatformAabb =  new();
     public static readonly List<OrientedBoundingBox> RampObb =  new();
     public static readonly List<MovingPlatform> MovingPlatforms =  new();
@@ -289,7 +290,13 @@ public static class Prefab
     
     public static void JumpingElevator()
     {
-        // eliminar el "nivel 1"
+        PlatformMatrices.Clear();
+        RampMatrices.Clear();
+        BoxMatrices.Clear();
+        PlatformAabb.Clear();
+        RampObb.Clear();
+        MovingPlatforms.Clear(); 
+        MovingObstacles.Clear();
             
         var height = 0f;
         const float heightIncrement = 35;
@@ -304,8 +311,6 @@ public static class Prefab
             CreatePlatform(platformSize, new Vector3(600f, height, -50f));
             height += heightIncrement;
         }
-            
-        CreatePlatform(platformSize, new Vector3(300f, height, 0f)); // checkpoint
         
         AcceleratedJumps(height);
     }
@@ -333,27 +338,53 @@ public static class Prefab
 
         for (int platforms = 0; platforms < 10; platforms++) {
             CreatePlatform(platformSize, new Vector3(600f + separation - 100f * platforms, height, 0));
-            CreateBoxLine(new Vector3(600f + separation - 100f * platforms, height, 0));
+            CreateBoxLineOfThree(new Vector3(36f, 60f, 36f),new Vector3(600f + separation - 100f * platforms, height + 33f, 0f));
         }
             
         for (int platforms = 10; platforms < 20; platforms++) {
             CreatePlatform(platformSize, new Vector3(600f + separation - 100f * platforms, height, 0));
-            // agregar obstaculos moviles
+            CreateMovingBox(new Vector3(36f, 60f, 36f), new Vector3(600f + separation - 100f * platforms, height + 36f, 60f));
         }
     }
 
-    private static void CreateBoxLine(Vector3 position)
+    private static void CreateBoxLineOfThree(Vector3 scale, Vector3 position)
     {
         Random random = new Random();
+        var box = new Matrix();
         switch (random.Next(1, 4))
         {
             case 1:
-                
+                box = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position);
+                PlatformAabb.Add(BoundingVolumesExtensions.FromMatrix(box));
+                BoxMatrices.Add(box);
+                box = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position + new Vector3(0f, 0f, 36f));
+                PlatformAabb.Add(BoundingVolumesExtensions.FromMatrix(box));
+                BoxMatrices.Add(box);
                 break;
             case 2:
+                box = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position);
+                PlatformAabb.Add(BoundingVolumesExtensions.FromMatrix(box));
+                BoxMatrices.Add(box);
+                box = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position + new Vector3(0f, 0f, -36f));
+                PlatformAabb.Add(BoundingVolumesExtensions.FromMatrix(box));
+                BoxMatrices.Add(box);
                 break;
             case 3:
+                box = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position + new Vector3(0f, 0f, 36f));
+                PlatformAabb.Add(BoundingVolumesExtensions.FromMatrix(box));
+                BoxMatrices.Add(box);
+                box = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position + new Vector3(0f, 0f, -36f));
+                PlatformAabb.Add(BoundingVolumesExtensions.FromMatrix(box));
+                BoxMatrices.Add(box);
                 break;
         }
+    }
+    
+    private static void CreateMovingBox(Vector3 scale, Vector3 position)
+    {
+        var obstacleWorld = Matrix.CreateScale(scale) * Matrix.CreateTranslation(position);
+        var obstacleBoundingBox = BoundingVolumesExtensions.FromMatrix(obstacleWorld);
+        var movingObstacle = new MovingObstacle(obstacleWorld, scale, position, obstacleBoundingBox);
+        MovingObstacles.Add(movingObstacle);
     }
 }

@@ -78,7 +78,7 @@ namespace TGC.MonoGame.TP
         private BoxPrimitive BoxPrimitive { get; set; }
         
         // Sphere position & rotation
-        public static readonly Vector3 InitialSpherePosition = new(600f, 10f, 0f);
+        public static readonly Vector3 InitialSpherePosition = new(300f, 10f, 0f);
         public const float InitialSphereYaw = 1.57f;
         private readonly Matrix _sphereScale = Matrix.CreateScale(5f);
         private const float SphereRadius = 5f;
@@ -135,7 +135,17 @@ namespace TGC.MonoGame.TP
             CreateCoins(-600, 0, 0);
 
             // Map
-            Prefab.JumpingElevator();
+            // Map
+            Prefab.CreateSquareCircuit(Vector3.Zero);
+            Prefab.CreateSquareCircuit(new Vector3(-600, 0f, 0f));
+            Prefab.CreateBridge();
+            Prefab.CreateSwitchbackRamp();
+
+            // Obstacles
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(150f, 16f, 260f));
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(150f, 16f, -140f));
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(-450f, 16f, 260f));
+            Prefab.CreateMovingObstacle(Vector3.One*25f, new Vector3(-450f, 16f, -140f));
             
             base.Initialize();
         }
@@ -367,6 +377,8 @@ namespace TGC.MonoGame.TP
             
             DrawMovingObstacles(BlinnPhongEffect, Material.Metal);
             
+            DrawBoxes(BlinnPhongEffect, Material.MovingPlatform); // cambiar textura
+            
             DrawTexturedModel(SphereWorld, SphereModel, BlinnPhongEffect, Player.CurrentSphereMaterial.Material);
 
             DrawCollectibles(CollectibleManager.Collectibles, gameTime);
@@ -485,6 +497,15 @@ namespace TGC.MonoGame.TP
             {
                 var movingPlatformWorld = movingObstacle.World;
                 SetBlinnPhongParameters(effect, material, Vector2.One * 3f, movingPlatformWorld, TargetCamera);
+                BoxPrimitive.Draw(effect);
+            }
+        }
+        
+        private void DrawBoxes(Effect effect, Material material)
+        {
+            foreach (var box in Prefab.BoxMatrices)
+            {
+                SetBlinnPhongParameters(effect, material,Vector2.One * 2f, box, TargetCamera);
                 BoxPrimitive.Draw(effect);
             }
         }
