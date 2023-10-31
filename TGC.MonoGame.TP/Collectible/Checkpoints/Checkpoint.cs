@@ -4,7 +4,7 @@ namespace TGC.MonoGame.TP.Collectible.Checkpoints;
 
 public class Checkpoint : Collectible
 {
-    // private const int Value = 1;
+    
     private const float DefaultScale = 0.1f;
 
     public Checkpoint(Vector3 position) 
@@ -12,12 +12,11 @@ public class Checkpoint : Collectible
     {
         Position = position;
         Scale = DefaultScale;
+        World = Matrix.CreateRotationX(MathHelper.PiOver2) * World;
     }
 
     protected override void OnCollected(Player player)
     {
-        player.IncreaseScore(1);
-        // player.ChangeRestartPosition(Position);
-        // player.IncreaseScore(Value);
+        player.ChangeRestartPosition(player.SpherePosition);
     }
 }
