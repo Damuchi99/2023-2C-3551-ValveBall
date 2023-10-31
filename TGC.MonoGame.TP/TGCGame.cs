@@ -253,7 +253,7 @@ namespace TGC.MonoGame.TP
             ClickMenuSound = Content.Load<SoundEffect>(ContentFolderSounds + "click_menu");
             Song = Content.Load<Song>(ContentFolderMusic + "classic_vibe");
             MediaPlayer.IsRepeating = true;
-            MediaPlayer.Play(Song);
+            // MediaPlayer.Play(Song);
             
             // Gizmos
             Gizmos.LoadContent(GraphicsDevice, Content);
