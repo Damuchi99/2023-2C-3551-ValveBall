@@ -36,8 +36,8 @@ public abstract class Collectible
         HandleCollection(player);
         UpdateAnimation(gameTime);
     }
-    
-    private void UpdateAnimation(GameTime gameTime)
+
+    protected virtual void UpdateAnimation(GameTime gameTime)
     {
         var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
         

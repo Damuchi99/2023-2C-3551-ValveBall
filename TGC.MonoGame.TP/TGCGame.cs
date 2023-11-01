@@ -193,7 +193,6 @@ namespace TGC.MonoGame.TP
         private static void CreateCheckpoints()
         {
             CollectibleManager.CreateCollectible<Checkpoint>(300,0f,100f);
-
         }
         
 
